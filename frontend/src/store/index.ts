@@ -4,6 +4,7 @@ import { Mode, Repo, RepoFile, Company, ConceptConfidence, ReadinessData, DailyP
 interface AppState {
   // Settings
   apiKey: string;
+  geminiKey: string;
   currentModule: number;
   targetCompany: Company;
   repos: Repo[];
@@ -30,6 +31,7 @@ interface AppState {
 
   // Actions
   setApiKey: (key: string) => void;
+  setGeminiKey: (key: string) => void;
   setMode: (mode: Mode) => void;
   setActiveFile: (file: RepoFile, repo: Repo) => void;
   setFileContent: (content: string) => void;
@@ -47,6 +49,7 @@ interface AppState {
 
 export const useStore = create<AppState>((set) => ({
   apiKey: localStorage.getItem('rt_api_key') ?? '',
+  geminiKey: localStorage.getItem('rt_gemini_key') ?? '',
   currentModule: parseInt(localStorage.getItem('rt_module') ?? '8'),
   targetCompany: (localStorage.getItem('rt_company') ?? 'hubspot') as Company,
   repos: [{ name: 'Pocket-Library', url: 'https://github.com/rohinigudimetla/Pocket-Library', branch: 'main' }],
@@ -69,6 +72,10 @@ export const useStore = create<AppState>((set) => ({
   setApiKey: (key) => {
     localStorage.setItem('rt_api_key', key);
     set({ apiKey: key });
+  },
+  setGeminiKey: (key) => {
+    localStorage.setItem('rt_gemini_key', key);
+    set({ geminiKey: key });
   },
   setMode: (mode) => set({ mode, highlightedLines: [] }),
   setActiveFile: (file, repo) => set({ activeFile: file, activeRepo: repo }),

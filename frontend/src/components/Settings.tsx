@@ -10,18 +10,23 @@ const COMPANIES: { id: Company; name: string }[] = [
 ];
 
 export function Settings() {
-  const { apiKey, targetCompany, currentModule, settingsOpen, setApiKey, setTargetCompany, setCurrentModule, setSettingsOpen } = useStore(s => ({
-    apiKey: s.apiKey, targetCompany: s.targetCompany, currentModule: s.currentModule,
-    settingsOpen: s.settingsOpen, setApiKey: s.setApiKey, setTargetCompany: s.setTargetCompany,
-    setCurrentModule: s.setCurrentModule, setSettingsOpen: s.setSettingsOpen,
+  const { apiKey, geminiKey, targetCompany, currentModule, settingsOpen, setApiKey, setGeminiKey, setTargetCompany, setCurrentModule, setSettingsOpen } = useStore(s => ({
+    apiKey: s.apiKey, geminiKey: s.geminiKey, targetCompany: s.targetCompany, currentModule: s.currentModule,
+    settingsOpen: s.settingsOpen, setApiKey: s.setApiKey, setGeminiKey: s.setGeminiKey,
+    setTargetCompany: s.setTargetCompany, setCurrentModule: s.setCurrentModule, setSettingsOpen: s.setSettingsOpen,
   }));
 
   const [keyInput, setKeyInput] = useState(apiKey);
+  const [geminiInput, setGeminiInput] = useState(geminiKey);
   const [ghToken, setGhToken] = useState(localStorage.getItem('rt_gh_token') ?? '');
   const [saved, setSaved] = useState(false);
 
+  const hasAnthropic = !!keyInput.trim();
+  const hasGemini = !!geminiInput.trim();
+
   function saveKey() {
     setApiKey(keyInput);
+    setGeminiKey(geminiInput);
     if (ghToken.trim()) {
       localStorage.setItem('rt_gh_token', ghToken);
       fetch('/api/progress/settings', {
@@ -43,7 +48,25 @@ export function Settings() {
           <button onClick={() => setSettingsOpen(false)} className="text-gray-500 hover:text-gray-300">✕</button>
         </div>
 
-        {/* API Key */}
+        {/* Model routing status */}
+        <div className="bg-surface-2 rounded-lg p-3 space-y-1.5 text-xs">
+          <div className="text-gray-500 font-medium mb-2">Model routing</div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Question generation, daily plans</span>
+            <span className={hasGemini ? 'text-green-400' : 'text-yellow-400'}>{hasGemini ? 'Gemini Flash (free)' : 'Claude Sonnet ↑'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Answer evaluation</span>
+            <span className={hasAnthropic ? 'text-accent-blue' : 'text-yellow-400'}>{hasAnthropic ? 'Claude Sonnet' : 'Gemini ↓'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400">Behavioral / deep dive mock</span>
+            <span className={hasAnthropic ? 'text-accent-blue' : 'text-yellow-400'}>{hasAnthropic ? 'Claude Sonnet' : 'Gemini ↓'}</span>
+          </div>
+          {!hasGemini && <p className="text-gray-600 pt-1">Add a Gemini key to route free tasks away from Anthropic.</p>}
+        </div>
+
+        {/* Anthropic API Key */}
         <div className="space-y-2">
           <label className="text-xs text-gray-500 font-medium block">Anthropic API Key</label>
           <div className="flex gap-2">
@@ -59,7 +82,23 @@ export function Settings() {
               {saved ? '✓ Saved' : 'Save'}
             </button>
           </div>
-          <p className="text-xs text-gray-600">Stored in localStorage. Used for TutorMode, Mock Interviews, and Daily Plans.</p>
+          <p className="text-xs text-gray-600">Used for evaluation tasks where answer quality directly matters.</p>
+        </div>
+
+        {/* Gemini API Key */}
+        <div className="space-y-2">
+          <label className="text-xs text-gray-500 font-medium block">
+            Gemini API Key <span className="text-green-400 ml-1">free tier</span>
+          </label>
+          <input
+            type="password"
+            value={geminiInput}
+            onChange={e => setGeminiInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && saveKey()}
+            placeholder="AIza..."
+            className="w-full bg-surface-2 border border-border rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-accent-blue font-mono"
+          />
+          <p className="text-xs text-gray-600">Free at aistudio.google.com — 15 req/min, 1M tokens/day. Routes question generation and planning here automatically.</p>
         </div>
 
         {/* GitHub Token */}
